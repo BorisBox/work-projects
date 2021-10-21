@@ -1,0 +1,395 @@
+{% comment %}
+Create this under snippets and include it wherever you want to display the search bar by using {% render 'ajax-search-form' %}
+{% endcomment %}
+
+
+{% comment %}
+All necessary HTML
+{% endcomment %}
+<div id="the_search_wrapper">
+      <div class="the_search">
+        <form class="search-form" action="/search" method="get" _lpchecked="1">
+            <i class="icon-mag"></i>
+            <input type="text" name="q" placeholder="Search" autocomplete="off">
+            <input type="submit" value="→">
+        </form>
+        <div style="display: none;" class="collections-box">
+          {% for collection in collections %}
+          {% unless collection.title contains "Except" %}
+          <a style="display: none;" class="collection-pulled" data-product-title="{{ collection.title }}" href="{{ collection.url }}">
+            <div class="d-title">{{ collection.title }}</div>
+          </a>
+          {% endunless %}
+		  {% endfor %}
+        </div>
+      </div>
+</div>
+
+{% comment %}
+Essential CSS, you will need to modify/add some more for your own container (in my case the container is the .header-track element)
+{% endcomment %}
+<style>
+.header-track.search-inside {
+ display: none; 
+}
+.box-1, .box-2, .box-3, .box-4 {
+    width: 100%;
+    max-width: 300px;
+    display: inline-block;
+    vertical-align: top;
+    border-left: 1px solid black;
+}
+.the_search-title {
+ padding-top: 20px;
+ text-align: center; 
+}
+.results-box a .d-title {
+display: inline-block;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+max-width: calc(100% - 60px);
+}
+.results-box a {
+display: block;
+margin: 0px auto;
+}
+.results-box .collection-pulled {
+ display: none; 
+}
+.results-box a .img {
+display: inline-block;
+margin-right: 10px;
+vertical-align: middle;
+}
+
+.the_search [placeholder="Search"] {
+width: calc(100% - 61px);
+}
+
+.the_search {
+    max-width: 500px;
+    display: block;
+    margin: auto;
+    position: absolute;
+    left: 0;
+    top: -20px;
+    width: 100%;
+    z-index: 999999;
+}
+.the_search .showmoretext .d-title {
+ width: 100%; 
+}
+.results-box {
+    padding: 0px 0px 1px 0px!important;
+    background: white;
+    margin-top: 20px;
+  	width: 1200px;
+    position: absolute;
+    right: 0;
+    display: none;
+}
+
+.the_search.focus .results-box.hasresults{
+    outline: 2px solid black;
+}
+
+.search-form input[type="submit"] {
+    border: none;
+    outline: 1px solid black;
+}
+
+.results-box a:first-child {
+    padding-top: 0px;
+}
+.results-box.hasresults a {
+    padding: 10px 20px;
+    min-height: 72px;
+    max-height: 72px;
+}
+.results-box.hasresults a:hover {
+background: #e0e0e0;
+}
+</style>
+
+
+{% comment %}
+All necessary HTML
+{% endcomment %}
+<script>
+
+// Run when document is ready
+$(function() {
+  
+// Open & Close Search
+  $(".search-icon-open-search img").on("click", function() {
+    if ($(".search-icon-open-search img").hasClass("s-closed")) {
+      $(".header-track.search-inside").css("display", "block")
+      $(".search-icon-open-search img").attr("src", "https://img.icons8.com/windows/50/000000/macos-close.png").addClass("s-opened").removeClass("s-closed")
+    } else {
+      $(".header-track.search-inside").css("display", "none")
+      $(".search-icon-open-search img").attr("src", "https://img.icons8.com/ios-filled/50/000000/search--v4.png").addClass("s-closed").removeClass("s-opened")
+    }
+  })
+
+
+
+// Append the results box to the container
+  var $resultsBox = $('<div class="results-box" />').appendTo('#the_search_wrapper .the_search');
+  $('<div class="box-1"><p class="the_search-title">Products</p></div><div class="box-2"><p class="the_search-title">Collections</p><a style="display: none;" class="nonefound">No Collections Found</a></div><div class="box-3"><p class="the_search-title">Pages</p></div><div class="box-4"><p class="the_search-title">Blog Posts</p></div>').appendTo($resultsBox)
+  // Place all the collection a elements into the second box container
+  $(".collection-pulled").appendTo(".box-2")
+  $resultsBox.append('<a class="note" style="text-align: center;"><div class="load"></div></a>');
+  /// Main search input
+  $('.the_search input[type="text"]').bind('focusin focusout', function(e) {
+    $(this).closest('.the_search').toggleClass('focus', e.type == 'focusin');
+    
+    // Just for decoration, adding a border to the results box
+    if ($(".results-box").text().length > 1) {
+      $(".results-box").addClass("hasresults")
+    } else {
+      $(".results-box").removeClass("hasresults")
+    }
+  });
+
+
+  /// The entire search function
+  
+  // Add the loader to the status box
+  $('<p class="font-24" style="display: inline-block; vertical-align: middle; margin: 0px!important; ">Loading...</p><img src="https://cdn.shopify.com/s/files/1/0446/5609/9482/files/spinner_9015f784-a0c7-45ce-9ca7-df251a73d7c8.svg?v=1634837521" style="vertical-align: middle;">').appendTo($(".results-box .load"));
+  var searchTimeoutThrottle = 100;
+  var searchTimeoutID = -1;
+  var currReqObj = null;
+  var currReqObjTwo = null;
+  var total_real_results = 0;
+  $('.the_search input[type="text"]').bind('keyup change', function() {
+    //Only search if search string longer than 2, and it has changed
+    if ($(this).val().length > 1 && $(this).val() != $(this).data('oldval')) {
+      $(".results-box .load").html('<p class="font-24" style="display: inline-block; vertical-align: middle; margin: 0px!important; ">Loading...</p><img src="loader.svg" style="vertical-align: middle;">')
+      //Reset previous value
+      $(this).data('oldval', $(this).val());
+
+      // Kill outstanding ajax request
+      if (currReqObj != null) {
+        currReqObj.abort();
+      }
+      if (currReqObjTwo != null) {
+        currReqObjTwo.abort();
+      }
+
+      // Kill previous search
+      clearTimeout(searchTimeoutID);
+
+      var $form = $(this).closest('form');
+
+      //Search Term
+      var term = '*' + $form.find('input[name="q"]').val().toLowerCase() + '*';
+      
+      // Cause Shopify is dumb and has no "exact match" option when searching
+      var term_no_asterisk = $form.find('input[name="q"]').val().toLowerCase();
+
+      //URL for full search page
+      var linkURL = $form.attr('action') + '?type=product,page,article&q=' + term;
+
+      // Do next search (in X milliseconds)
+      searchTimeoutID = setTimeout(function() {
+
+        // Send AJAX Request to retrieve search results
+        currReqObj = $.ajax({
+          url: $form.attr('action'),
+          data: {
+            type: 'product,page,article',
+            view: 'json',
+            q: term,
+          },
+          dataType: "json",
+          success: function(data) {
+            $(".box-1, .box-2, .box-3, .box-4").css("min-height", "46px");
+            currReqObj = null;
+            
+            // NO results
+            if (data.results_total == 0) {
+              total_real_results = 0;
+              $(".box-1, .box-3, .box-4").empty();
+              $(".box-1").append('<p class="the_search-title">Products</p>');
+              $(".box-3").append('<p class="the_search-title">Pages</p>');
+              $(".box-4").append('<p class="the_search-title">Blog Posts</p>');
+              $(".box-2 .collection-pulled, .box-2 .nonefound").hide();
+              $resultsBox.fadeIn(200);
+              $(".results-box .load").html('<p class="font-24" style="display: block; margin: auto!important;">No Results Found</p>')
+            }
+            // HAS results
+            else {
+              $(".results-box").addClass("hasresults").show();
+              total_real_results = 0;
+              $(".box-1, .box-3, .box-4").empty();
+              $(".box-1").append('<p class="the_search-title">Products</p>');
+              $(".box-3").append('<p class="the_search-title">Pages</p>');
+              $(".box-4").append('<p class="the_search-title">Blog Posts</p>');
+              $(".box-2 .collection-pulled, .box-2 .nonefound").hide();
+				
+              // Search Through Products & Pages
+              $.each(data.results, function(index, item) {
+                var xshow = 'dontshowthisproduct'; // Enter a term you want to exclude from the search
+                if (!(item.title.toLowerCase().indexOf(xshow) > -1) && item.title.toLowerCase().indexOf(term_no_asterisk) > -1) {
+                  total_real_results++
+                  var $row = $('<a></a>').attr('href', item.url);
+
+                  // IF PRODUCT
+                  if (item.url.indexOf("/products/") > -1 && $(".results-box .box-1 a").length < 3) {
+                    $row.append('<div class="img"><img src="' + item.thumb + '" /></div>');
+                    $row.append('<div class="d-title">' + item.title + '</div>');
+                    $(".results-box .box-1").append($row);
+                    if ($(".results-box .box-1 a").length == 3) {
+                      $(".results-box .box-1").append('<a href="' + $form.attr('action') + '?type=product&q=' + term + '">More Products Found</a>');
+                    }
+                  }
+                  // IF PAGE
+                  else if (item.url.indexOf("/pages/") > -1 && $(".results-box .box-3 a").length < 3) {
+                    $row.append('<div class="d-title">' + item.title + '</div>');
+                    $(".results-box .box-3").append($row);
+                  }
+                }
+              });
+              
+              // Search Through Collections
+              $(".collection-pulled").each(function() {
+                if ($(".results-box .box-2 .collection-pulled:visible").length < 3) {
+                  if ($(this).data("product-title").toLowerCase().indexOf(term_no_asterisk) > -1) {
+                    $(this).css("display", "block");
+                  }
+                  if ($(".results-box .box-2 .collection-pulled:visible").length == 3) {
+                    $(".results-box .box-2").append('<a href="/collections/">More Collections Found</a>');
+                  }
+
+                  if ($(".results-box .box-2 .collection-pulled:visible").length == 0) {
+                    $(".results-box .box-2 .nonefound").show()
+                  } else {
+                    $(".results-box .box-2 .nonefound").hide()
+                  }
+                }
+              })
+
+              if ($(".box-1 a").length == 0) {
+                $(".box-1").append('<a class="nonefound">No Products Found</a>')
+              }
+              if ($(".box-3 a").length == 0) {
+                $(".box-3").append('<a class="nonefound">No Pages Found</a>')
+              }
+              if ($(".box-4 a").length == 0) {
+                $(".box-4").append('<a class="nonefound">No Blog Posts Found</a>')
+              }
+
+
+              if ($(".box-1 a").length == 4 || $(".box-2 .collection-pulled:visible").length == 4 || $(".box-3 a").length == 4) {
+                $(".box-1, .box-2, .box-3, .box-4").css("min-height", "354px")
+                $(".nonefound").css("margin-top", "236px")
+              } else if ($(".box-1 a").length == 3 || $(".box-2 .collection-pulled:visible").length == 3 || $(".box-3 a").length == 3) {
+                $(".box-1, .box-2, .box-3, .box-4").css("min-height", "291px")
+                $(".nonefound").css("margin-top", "164px")
+              } else if ($(".box-1 a").length == 2 || $(".box-2 .collection-pulled:visible").length == 2 || $(".box-3 a").length == 2) {
+                $(".box-1, .box-2, .box-3, .box-4").css("min-height", "215px")
+                $(".nonefound").css("margin-top", "92px")
+              } else if ($(".box-1 a").length == 1 || $(".box-2 .collection-pulled:visible").length == 1 || $(".box-3 a").length == 1) {
+                $(".box-1, .box-2, .box-3, .box-4").css("min-height", "145px")
+                $(".nonefound").css("margin-top", "20px")
+              }
+              $(".results-box .load").html('<p class="font-24" style="display: block; margin: auto!important;">' + total_real_results + ' Results Found</p>')
+            }
+            searchBlogPosts()
+          }
+        });
+
+        // Search Blog Posts (This was set up for a custom blog XML feed, so remove / modify for your own needs)
+        function searchBlogPosts() {
+          currReqObjTwo = $.ajax({
+            type: "GET",
+            url: "/a/blog/feed?limit=1000",
+            dataType: "xml",
+            jsonp: false,
+            success: function(xml) {
+              currReqObjTwo = null;
+              var itemcount = 0;
+              var numofitems = $(xml).find("item").length;
+              var newarray = [];
+              var newarray_links = [];
+              $(xml).find("item").each(function() {
+                itemcount++
+                if ($(this).text().toLowerCase().indexOf(term_no_asterisk) > -1) {
+                  var thearray = $(this).text().split("\n")
+                  if (thearray[2].replace(/\s\s\s/g, "").toLowerCase().indexOf("to") > -1) {
+                    newarray.push(thearray[2].replace(/\s\s\s/g, ""))
+                    newarray_links.push(thearray[1])
+                  }
+                }
+                if (newarray.length > 0) {
+                  if (itemcount == numofitems) {
+                    var item_ind = 0;
+                    while (item_ind < 3) {
+                      var $row = $('<a></a>').attr('href', newarray_links[item_ind]);
+                      $row.append('<div class="d-title">' + newarray[item_ind] + '</div>');
+                      $(".results-box .box-4").append($row);
+                      item_ind++;
+                    }
+                    if (newarray.length > 3) {
+                      $(".results-box .box-4").append('<a href="/a/blog">More Blog Posts Found</a>');
+                    }
+                  }
+                }
+              })
+              if ($(".box-1 a").length <= 4 || $(".box-2 .collection-pulled:visible").length <= 4 || $(".box-3 a").length <= 4) {
+                if ($(".box-4 a").length > 0) {
+                  $(".results-box .box-4 .nonefound").hide()
+                  if ($(".box-4 a").length == 4) {
+                    $(".box-1, .box-2, .box-3, .box-4").css("min-height", "354px")
+                    $(".nonefound").css("margin-top", "236px")
+                  } else if ($(".box-4 a").length == 3) {
+                    $(".box-1, .box-2, .box-3, .box-4").css("min-height", "291px")
+                    $(".nonefound").css("margin-top", "164px")
+                  } else if ($(".box-4 a").length == 2) {
+                    $(".box-1, .box-2, .box-3, .box-4").css("min-height", "215px")
+                    $(".nonefound").css("margin-top", "92px")
+                  } else if ($(".box-4 a").length == 1) {
+                    $(".box-1, .box-2, .box-3, .box-4").css("min-height", "145px")
+                    $(".nonefound").css("margin-top", "20px")
+                  }
+                } else {
+                  $(".results-box .box-4 .nonefound").show()
+                }
+              }
+            }
+          })
+        }
+      }, searchTimeoutThrottle);
+    } else if ($(this).val().length <= 1) {
+      //Deleted text? Clear results
+      $(".box-1, .box-3, .box-4").empty()
+      $(".box-2 .collection-pulled, .box-2 .nonefound").hide();
+      $(".results-box").removeClass("hasresults").hide()
+
+    }
+  }).attr('autocomplete', 'off').data('oldval', '').bind('focusin', function() {
+    //Focus, show results
+    if ($(".box-1 a").length >= 1 || $(".box-2 .collection-pulled:visible").length >= 1 || $(".box-3 a").length >= 1 || $(".box-4 a").length >= 1) {
+      $resultsBox.fadeIn(200);
+    }
+  }).bind('click', function(e) {
+    //Click, prevent body from receiving click event
+    e.stopPropagation();
+  });
+  $('body').bind('click', function() {
+    //Click anywhere on page, hide results
+    $resultsBox.fadeOut(200);
+  });
+
+  // Go to the actual Shopify Search page
+  $('.search-form, #search-form').on('submit', function(e) {
+    e.preventDefault();
+    var term = '*' + $(this).find('input[name="q"]').val() + '*';
+    var linkURL = $(this).attr('action') + '?type=product,page,article&q=' + term;
+    window.location = linkURL;
+  });
+
+  // search ends
+});
+</script>
