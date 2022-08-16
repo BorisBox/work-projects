@@ -1,4 +1,4 @@
-const bdhtml = $("body").html().toString();
+const bdhtml = $("body").html().toString().replace(/bdhtml[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, " ");
 const hdhtml = $("head").html().toString().replace(/bdhtml[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, " ");
 const bh = (bdhtml + hdhtml).toString().replace(/bdhtml[^>]*>.*?.x3C/gi, " ");
 var klons = "NOT INSTALLED";
