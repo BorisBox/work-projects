@@ -1,4 +1,4 @@
-var bh = $("html").html().toString().replace(/(?<=x3Cscript>var bh).*?(?=script><\/head>)/gm, "");
+var bh = $("html").html().replace(/(?<=script>var bh).*?(?=body id)/gims, "");
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
 var klvpmt = "None";
