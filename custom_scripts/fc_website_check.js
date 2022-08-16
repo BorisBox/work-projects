@@ -1,4 +1,4 @@
-var bh = $("html").html().replace(/<script>[^<]*?(klons).*?\<\/script>/gms, "");
+var bh = $("html").html().toString().replace(/<script[\s\S]*?>*?(klons).*?\<\/script>/gms, "");
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
 var klvpmt = "None";
