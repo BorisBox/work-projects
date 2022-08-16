@@ -1,6 +1,6 @@
-var bdhtml = $("body").html().toString();
-var hdhtml = $("head").html().toString().replace(/bdhtml[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, "");
-var bh = bdhtml + hdhtml;
+const bdhtml = $("body").html().toString();
+const hdhtml = $("head").html().toString().replace(/bdhtml[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, "");
+const bh = bdhtml + hdhtml;
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
 var klvpmt = "None";
