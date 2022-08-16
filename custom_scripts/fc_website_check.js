@@ -1,3 +1,7 @@
+var bdhtml = $("body").html();
+var hdhtml = $("head").html();
+console.log(bdhtml)
+console.log(hdhtml)
 var bh = $("head").html() + $("body").html();
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
@@ -38,7 +42,7 @@ $('input[type="email"]').one("click", function() {
     runReport()
 })
 
-console.clear();
+//console.clear();
 console.log('%cPlease click on the input field of the newsletter form in the footer (the one that usually says "email" or "Enter your Email"', 'background: #FDDA0D; color: #000000; padding: 5px; font-size: 18px;');
 
 function checkIfTrue(which) {
@@ -74,7 +78,7 @@ ccss_o = 'background: #382076; color: #ffffff; padding: 8px 20px; font-size: 18p
 ccss_t = 'background: #228C22; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
 ccss_th = 'background: #73629F; color: #ffffff; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
 ccss_f = 'background: #AF0606; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
-console.clear()
+//console.clear()
 console.log('%cKlaviyo Onsite Script: %c' + klons,ccss_o ,checkIfTrue(1));
 console.log('%cViewed Product Metric: %c' + klvp,ccss_o ,checkIfTrue(2));
 console.log('%c   - Viewed Product Metric Type: %c' + klvpmt,ccss_th ,checkIfTrue(3));
