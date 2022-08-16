@@ -1,4 +1,3 @@
-console.clear();
 var bh = $("html").html();
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
@@ -28,8 +27,6 @@ if (bh.indexOf("_learnq.push(['track', 'Added to Cart'") > -1) {
     klatc = "INSTALLED";
 }
 
-console.log('%cPlease click on the input field of the newsletter form in the footer (the one that usually says "email" or "Enter your Email"', 'background: #FDDA0D; color: #000000; padding: 5px; font-size: 18px;');
-
 $('input[type="email"]').one("click", function() {
     if (bh.indexOf("https://manage.kmail-lists.com/ajax/subscriptions/subscribe") > -1) {
         klfr = "True";
@@ -40,6 +37,9 @@ $('input[type="email"]').one("click", function() {
 
     runReport()
 })
+
+console.clear();
+console.log('%cPlease click on the input field of the newsletter form in the footer (the one that usually says "email" or "Enter your Email"', 'background: #FDDA0D; color: #000000; padding: 5px; font-size: 18px;');
 
 function checkIfTrue(which) {
 if (which == 1) {
