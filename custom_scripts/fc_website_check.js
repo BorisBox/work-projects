@@ -1,5 +1,5 @@
-var bdhtml = $("body").html();
-var hdhtml = $("head").html();
+var bdhtml = $("body").html().toString();
+var hdhtml = $("head").html().toString();
 console.log(bdhtml)
 console.log(hdhtml)
 var bh = $("head").html() + $("body").html();
