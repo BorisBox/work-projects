@@ -1,3 +1,4 @@
+console.clear();
 var bh = $("html").html();
 var klons = "NOT INSTALLED";
 var klvp = "NOT INSTALLED";
