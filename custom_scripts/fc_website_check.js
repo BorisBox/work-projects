@@ -73,9 +73,9 @@ if (which == 1) {
 
 function runReport() {
 ccss_o = 'background: #382076; color: #ffffff; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
-ccss_t = 'background: #228C22; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
+ccss_t = 'background: #228C22; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana; font-weight: bold;';
 ccss_th = 'background: #73629F; color: #ffffff; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
-ccss_f = 'background: #EA6A4E; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana;';
+ccss_f = 'background: #EA6A4E; color: #000000; padding: 8px 20px; font-size: 18px; font-family: Verdana; font-weight: bold;';
 console.clear()
 console.log('%cKlaviyo Onsite Script: %c' + klons,ccss_o ,checkIfTrue(1));
 console.log('%cViewed Product Metric: %c' + klvp,ccss_o ,checkIfTrue(2));
