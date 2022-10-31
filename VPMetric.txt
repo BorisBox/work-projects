@@ -1,0 +1,32 @@
+<script type="text/javascript">
+  var _learnq = _learnq || [];
+
+if (window.location.href.indexOf("products") > -1) {
+  var item = {
+    Name: {{ product.title|json }},
+    ProductID: {{ product.id|json }},
+    VariantID: {{ product.selected_or_first_available_variant.id|default: '0' }},
+    Categories: {{ product.collections|map:'title'|json }},
+    ImageURL: "https:{{ product.featured_image.src|img_url:'grande' }}",
+    URL: "{{ shop.secure_url }}{{ product.url }}",
+    Brand: {{ product.vendor|json }},
+    Price: {{ product.price|money|replace: "$ ", "$"|replace: "<span class=money>", ""|replace: "<span class='money'>", ""|replace: '<span class="money">', ""|replace: "</span>", ""|json }},
+    CompareAtPrice: {{ product.compare_at_price_max|money|replace: "$ ", "$"|replace: "<span class=money>", ""|replace: "<span class='money'>", ""|replace: '<span class="money">', ""|replace: "</span>", ""|json }}
+  };
+
+  _learnq.push(['track', 'Viewed Product', item]);
+  _learnq.push(['trackViewedItem', {
+    Title: item.Name,
+    ItemId: item.ProductID,
+    VariantID: item.VariantID,
+    Categories: item.Categories,
+    ImageUrl: item.ImageURL,
+    Url: item.URL,
+    Metadata: {
+      Brand: item.Brand,
+      Price: item.Price,
+      CompareAtPrice: item.CompareAtPrice
+    }
+  }]);
+  }
+</script>
