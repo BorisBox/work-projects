@@ -1,4 +1,34 @@
 <script type="text/javascript">
+// For built-in VP from Klaviyo + ATC
+if (window.location.href.indexOf("products") > -1 && typeof item !== 'undefined') {
+	// Add Variant ID to Viewed Product Metric
+	item.VariantID = {{ product.selected_or_first_available_variant.id|default: '0' }};
+	item.Price: {{ product.price|money|replace: "$ ", "$"|replace: "<span class=money>", ""|replace: "<span class='money'>", ""|replace: '<span class="money">', ""|replace: "</span>", ""|json }};
+	item.CompareAtPrice: {{ product.compare_at_price_max|money|replace: "$ ", "$"|replace: "<span class=money>", ""|replace: "<span class='money'>", ""|replace: '<span class="money">', ""|replace: "</span>", ""|json }};
+    
+	// Send Added To Cart Metric (remove it if one already exists)
+	let ATCelementsArray = document.querySelectorAll("ATC button classes, IDs, etc. here");
+	ATCelementsArray.forEach(function(elem) {
+		elem.addEventListener("click", function() {
+			_learnq.push(['track', 'Added To Cart', item]);
+      	});
+	})
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+// If the built-in VP metric from Klaviyo is disabled, use this
   var _learnq = _learnq || [];
 
 if (window.location.href.indexOf("products") > -1) {
@@ -28,5 +58,5 @@ if (window.location.href.indexOf("products") > -1) {
       CompareAtPrice: item.CompareAtPrice
     }
   }]);
-  }
+}
 </script>
